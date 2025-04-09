@@ -31,11 +31,15 @@ object GithubRepository {
     }
 
     suspend fun searchRepositories(
-        query: String
+        query: String,
+        page: Int = 1
     ): Result<SearchResultResponse<Repository>> {
         return try {
             Result.success(
-                service.searchRepositories(query.plus("+language:Kotlin"))
+                service.searchRepositories(
+                    query = query.plus("+language:Kotlin"),
+                    page = page
+                )
             )
         } catch (exception: Throwable) {
             Result.failure(exception)

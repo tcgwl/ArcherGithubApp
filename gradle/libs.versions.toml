@@ -15,7 +15,8 @@ hilt-navigation-compose = "1.1.0"
 retrofit = "2.9.0"
 logging-interceptor = "4.10.0"
 coil = "2.6.0"
-accompanist = "0.32.0"
+accompanistWebview = "0.32.0"
+accompanistSwiperefresh = "0.35.0-alpha"
 coreKtxVersion = "1.6.1"
 kotlinx-coroutines-test = "1.7.3"
 mockk = "1.13.10"
@@ -48,7 +49,8 @@ logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-intercep
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 coil-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil" }
 coil-gif = { group = "io.coil-kt", name = "coil-gif", version.ref = "coil" }
-accompanist-webview = { group = "com.google.accompanist", name = "accompanist-webview", version.ref = "accompanist" }
+accompanist-webview = { group = "com.google.accompanist", name = "accompanist-webview", version.ref = "accompanistWebview" }
+accompanist-swiperefresh = { module = "com.google.accompanist:accompanist-swiperefresh", version.ref = "accompanistSwiperefresh" }
 core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "coreKtxVersion" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines-test" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }

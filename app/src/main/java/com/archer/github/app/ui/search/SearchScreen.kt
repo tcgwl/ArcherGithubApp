@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuDefaults
 import androidx.compose.material.TextField
@@ -29,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -42,12 +45,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.archer.github.app.R
 import com.archer.github.app.ui.widgets.CustomDialog
-import com.archer.github.app.ui.widgets.CustomLoadingView
 import com.archer.github.app.ui.widgets.SearchRepoItem
 import com.archer.github.app.ui.widgets.TitleBar
 import com.archer.github.app.utils.LocalNavHostController
+import com.archer.github.app.utils.LogUtil
 import com.archer.github.app.utils.ToastUtil
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -56,7 +62,8 @@ fun SearchScreen(viewModel: SearchViewModel = hiltViewModel()) {
     val navController = LocalNavHostController.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val lazyListState = rememberLazyListState()
-    val searchRepoResult = viewModel.searchRepoResult.collectAsState().value
+    val searchRepoList = viewModel.searchRepoResult.collectAsState()
+    val isRefreshing = viewModel.loadingState.collectAsState().value
     val errorPopup = remember { mutableStateOf("") }
     var keywords by rememberSaveable { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
@@ -66,6 +73,18 @@ fun SearchScreen(viewModel: SearchViewModel = hiltViewModel()) {
         viewModel.errorState.collectLatest {
             errorPopup.value = it.message
         }
+    }
+
+    // 上拉加载更多监听
+    LaunchedEffect(lazyListState) {
+        snapshotFlow { lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+            .distinctUntilChanged()
+            .collect { lastVisibleItemIndex ->
+                LogUtil.d("lastVisibleItemIndex=$lastVisibleItemIndex, searchRepoList.lastIndex=${searchRepoList.value.lastIndex}, viewModel.isLoadingMore=${viewModel.isLoadingMore}")
+                if (lastVisibleItemIndex == searchRepoList.value.lastIndex && !viewModel.isLoadingMore) {
+                    viewModel.loadMore()
+                }
+            }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -81,7 +100,7 @@ fun SearchScreen(viewModel: SearchViewModel = hiltViewModel()) {
                                     ToastUtil.showShort(context.getString(R.string.search_hint))
                                 } else {
                                     keyboardController?.hide()
-                                    viewModel.searchRepositories(keywords)
+                                    viewModel.refresh(keywords)
                                 }
                             },
                         imageVector = Icons.Default.Search,
@@ -117,28 +136,60 @@ fun SearchScreen(viewModel: SearchViewModel = hiltViewModel()) {
                         ToastUtil.showShort(context.getString(R.string.search_hint))
                     } else {
                         keyboardController?.hide()
-                        viewModel.searchRepositories(keywords)
+                        viewModel.refresh(keywords)
                     }
                 },
                 onValueChange = { value -> keywords = value })
         }
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            state = lazyListState
+        SwipeRefresh(
+            state = rememberSwipeRefreshState(isRefreshing),
+            onRefresh = {
+                if (keywords.trim().isNotEmpty()) {
+                    viewModel.refresh(keywords)
+                }
+            }
         ) {
-            searchRepoResult?.items?.let { data ->
-                items(data, key = { it.id }) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(vertical = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                state = lazyListState
+            ) {
+                items(searchRepoList.value, key = { it.id }) {
                     SearchRepoItem(repo = it)
+                }
+
+                // 上拉加载指示器
+                if (viewModel.isLoadingMore) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                } else if (viewModel.searchRepoResult.value.isNotEmpty() && viewModel.isLastPage) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(R.string.list_load_more_no_data),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
+                            )
+                        }
+                    }
                 }
             }
         }
-    }
-
-    if (viewModel.loadingState.collectAsState().value) {
-        CustomLoadingView()
     }
 
     if (errorPopup.value.isNotEmpty()) {
@@ -148,7 +199,7 @@ fun SearchScreen(viewModel: SearchViewModel = hiltViewModel()) {
                 Text(errorPopup.value)
             },
             onConfirm = {
-                viewModel.searchRepositories(keywords)
+                viewModel.refresh(keywords)
                 errorPopup.value = ""
             }
         ) {

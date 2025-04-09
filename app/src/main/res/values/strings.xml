@@ -9,6 +9,7 @@
 
     <string name="search_title">搜索</string>
     <string name="search_hint">请输入关键字搜索</string>
+    <string name="list_load_more_no_data">已经到底啦~</string>
 
     <string name="mine_repo">我的仓库</string>
     <string name="mine_star">我的收藏</string>

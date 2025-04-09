@@ -86,6 +86,7 @@ dependencies {
     implementation(libs.coil.svg)
     implementation(libs.coil.gif)
     implementation(libs.accompanist.webview)
+    implementation(libs.accompanist.swiperefresh)
 
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
