@@ -27,7 +27,6 @@ object RetrofitManager {
             .build()
 
     fun <T> getService(serviceClass: Class<T>, baseUrl: String? = null): T {
-        LogUtil.d(Constant.GITHUB_API_BASE_URL)
         return Retrofit.Builder()
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
