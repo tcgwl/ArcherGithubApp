@@ -1,7 +1,7 @@
 package com.archer.github.app.utils
 
 import android.widget.Toast
-import com.archer.github.app.GithubApp
+import com.archer.github.app.base.BaseApp
 
 /**
  * Toast封装工具类
@@ -9,10 +9,10 @@ import com.archer.github.app.GithubApp
 object ToastUtil {
 
     fun showShort(msg: String) {
-        Toast.makeText(GithubApp.context, msg, Toast.LENGTH_SHORT).show()
+        Toast.makeText(BaseApp.appContext, msg, Toast.LENGTH_SHORT).show()
     }
 
     fun showLong(msg: String) {
-        Toast.makeText(GithubApp.context, msg, Toast.LENGTH_LONG).show()
+        Toast.makeText(BaseApp.appContext, msg, Toast.LENGTH_LONG).show()
     }
 }

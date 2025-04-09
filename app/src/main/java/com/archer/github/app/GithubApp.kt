@@ -1,20 +1,17 @@
 package com.archer.github.app
 
-import android.annotation.SuppressLint
-import android.app.Application
-import android.content.Context
+import com.archer.github.app.base.BaseApp
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
-class GithubApp: Application() {
+class GithubApp: BaseApp() {
 
     override fun onCreate() {
         super.onCreate()
-        context = applicationContext
+        appViewModel = getAppViewModelProvider()[AppViewModel::class.java]
     }
 
     companion object {
-        @SuppressLint("StaticFieldLeak")
-        lateinit var context: Context
+        lateinit var appViewModel: AppViewModel
     }
 }
