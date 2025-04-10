@@ -25,7 +25,7 @@ import com.archer.github.app.utils.LogUtil
 import com.archer.github.app.R
 import com.archer.github.app.common.Constant
 import com.archer.github.app.ui.search.SearchScreen
-import com.archer.github.app.ui.web.WebPage
+import com.archer.github.app.ui.web.WebScreen
 import java.net.URLDecoder
 
 @Composable
@@ -74,7 +74,7 @@ fun NavGraph(navController: NavHostController, onFinish: () -> Unit) {
                 )
             ) {
                 val url = it.arguments?.getString("url") ?: ""
-                WebPage(Constant.GITHUB_BASE_URL.plus(URLDecoder.decode(url, "UTF-8")))
+                WebScreen(Constant.GITHUB_BASE_URL.plus(URLDecoder.decode(url, "UTF-8")))
             }
         }
     }

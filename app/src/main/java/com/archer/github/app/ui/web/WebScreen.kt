@@ -21,7 +21,7 @@ import com.google.accompanist.web.rememberWebViewState
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun WebPage(url: String) {
+fun WebScreen(url: String) {
     var pageTitle by remember { mutableStateOf("加载中...") }
     var progress by remember { mutableFloatStateOf(0.1f) }
     val webViewState = rememberWebViewState(url = url)
