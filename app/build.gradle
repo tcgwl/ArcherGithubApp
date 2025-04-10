@@ -87,6 +87,8 @@ dependencies {
     implementation(libs.coil.gif)
     implementation(libs.accompanist.webview)
     implementation(libs.accompanist.swiperefresh)
+    implementation(libs.androidx.security.crypto)
+    implementation(libs.kotlin.test)
 
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit

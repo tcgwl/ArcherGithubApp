@@ -31,10 +31,15 @@ class OAuthLoginViewModelTest {
         val mockContext = mockk<Context>(relaxed = true)
         UserDao.contextProvider = { mockContext }
 
-        val mockPrefs = mockk<SharedPreferences>(relaxed = true).apply {
-            every { edit() } returns mockk(relaxed = true)
-        }
-        every { mockContext.getSharedPreferences(any(), any()) } returns mockPrefs
+        val mockPrefs = mockk<SharedPreferences>(relaxed = true)
+        val mockEditor = mockk<SharedPreferences.Editor>(relaxed = true)
+        every { mockPrefs.edit() } returns mockEditor
+        every { mockEditor.putString(any(), any()) } returns mockEditor
+        every { mockEditor.remove(any()) } returns mockEditor
+        every { mockEditor.apply() } just Runs
+        every { mockPrefs.getString("access_token", null) } returns "mocked_token"
+
+        UserDao.preferencesProvider = { mockPrefs }
         every { UserDao.saveAccessToken(any()) } just Runs
     }
 
@@ -42,6 +47,7 @@ class OAuthLoginViewModelTest {
     fun tearDown() {
         Dispatchers.resetMain()
         unmockkAll()
+        UserDao.preferencesProvider = null
     }
 
     @Test

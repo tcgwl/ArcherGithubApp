@@ -10,9 +10,12 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.impl.annotations.MockK
 import io.mockk.MockKAnnotations
+import io.mockk.Runs
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.*
@@ -39,16 +42,22 @@ class MineViewModelTest {
         val mockContext = mockk<Context>(relaxed = true)
         UserDao.contextProvider = { mockContext }
 
-        val mockPrefs = mockk<SharedPreferences>(relaxed = true).apply {
-            every { edit() } returns mockk(relaxed = true)
-        }
-        every { mockContext.getSharedPreferences(any(), any()) } returns mockPrefs
-        every { UserDao.getAccessToken() } returns null
+        val mockPrefs = mockk<SharedPreferences>(relaxed = true)
+        val mockEditor = mockk<SharedPreferences.Editor>(relaxed = true)
+        every { mockPrefs.edit() } returns mockEditor
+        every { mockEditor.putString(any(), any()) } returns mockEditor
+        every { mockEditor.remove(any()) } returns mockEditor
+        every { mockEditor.apply() } just Runs
+        every { mockPrefs.getString("access_token", null) } returns "mocked_token"
+
+        UserDao.preferencesProvider = { mockPrefs }
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+        unmockkAll()
+        UserDao.preferencesProvider = null
     }
 
     @Test

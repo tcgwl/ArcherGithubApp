@@ -51,16 +51,18 @@ class AppViewModelTest {
         // 解耦关键：替换 UserDao 的 Context 来源
         mockkStatic(UserDao::class)
         val mockContext = mockk<Context>(relaxed = true)
-        UserDao.contextProvider = { mockContext } // 注入测试上下文
+        UserDao.contextProvider = { mockContext }
 
-        // 模拟 SharedPreferences
-        val mockPrefs = mockk<SharedPreferences>(relaxed = true).apply {
-            every { edit() } returns mockk(relaxed = true)
-        }
-        every { mockContext.getSharedPreferences(any(), any()) } returns mockPrefs
+        val mockSharedPreferences = mockk<SharedPreferences>(relaxed = true)
+        val mockEditor = mockk<SharedPreferences.Editor>(relaxed = true)
+        every { mockSharedPreferences.edit() } returns mockEditor
+        every { mockEditor.putString(any(), any()) } returns mockEditor
+        every { mockEditor.remove(any()) } returns mockEditor
+        every { mockEditor.apply() } just Runs
+        every { mockSharedPreferences.getString("access_token", null) } returns "mocked_token"
 
-        // 默认模拟 UserDao 方法
-        every { UserDao.getAccessToken() } returns null
+        UserDao.preferencesProvider = { mockSharedPreferences }
+
         every { UserDao.removeAccessToken() } just Runs
     }
 
@@ -68,6 +70,7 @@ class AppViewModelTest {
     fun tearDown() {
         Dispatchers.resetMain()
         unmockkAll()
+        UserDao.preferencesProvider = null
     }
 
     @Test
